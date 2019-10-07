@@ -34,7 +34,7 @@ after_initialize do
     get "/home" => "pavilion_home/page#index"
   end
   
-  class HomepageUserSerializer < BasicUserSerializer
+  class HomepageUserSerializer < ::BasicUserSerializer
     attributes :title,
                :bio
     
@@ -43,22 +43,26 @@ after_initialize do
     end
   end
   
+  TopicQuery.add_custom_filter(:exclude_done) do |topics, query|
+    if query.options[:exclude_done]
+      topics.where("topics.id NOT IN (
+         SELECT topic_id FROM topic_tags
+         WHERE topic_tags.tag_id in (
+           SELECT id FROM tags
+           WHERE tags.name = 'done'
+         )
+       )")
+    else
+      topics
+    end
+  end
+  
+  TopicQuery.add_custom_filter(:calendar) do |topics, query|
+    topics
+  end
+  
   require_dependency 'topic_query'
   class ::TopicQuery
-    def list_work
-      @options[:assigned] = @user.username
-      
-      create_list(:work) do |result|
-        result.where("topics.id NOT IN (
-          SELECT topic_id FROM topic_tags
-          WHERE topic_tags.tag_id in (
-            SELECT id FROM tags
-            WHERE tags.name = 'done'
-          )
-        )")
-      end
-    end
-    
     def list_unassigned
       @options[:assigned] = "nobody"
       @options[:tags] = SiteSetting.pavilion_unassigned_tags.split('|')
@@ -67,7 +71,7 @@ after_initialize do
   end
   
   require_dependency 'topic_list_item_serializer'
-  class HomeTopicListItemSerializer < TopicListItemSerializer
+  class HomeTopicListItemSerializer < ::TopicListItemSerializer
     def excerpt
       doc = Nokogiri::HTML::fragment(object.first_post.cooked)
       doc.search('.//img').remove
@@ -80,13 +84,13 @@ after_initialize do
   end
   
   require_dependency 'topic_list_serializer'
-  class HomeTopicListSerializer < TopicListSerializer
+  class HomeTopicListSerializer < ::TopicListSerializer
     has_many :topics, serializer: HomeTopicListItemSerializer, embed: :objects
   end
   
   require_dependency 'application_controller'
   require_dependency 'user_serializer'
-  class PavilionHome::PageController < ApplicationController    
+  class PavilionHome::PageController < ::ApplicationController    
     def index
       json = {}
       guardian = Guardian.new(current_user)
@@ -102,7 +106,11 @@ after_initialize do
       topic_list = nil
       
       if current_user && current_user.staff?
-        topic_list = TopicQuery.new(current_user, per_page: 6).list_work
+        topic_list = TopicQuery.new(current_user,
+          per_page: 6,
+          exclude_done: true,
+          assigned: current_user.username
+        ).list_latest
       elsif (current_user && (home_category = current_user.home_category))
         topic_list = TopicQuery.new(current_user,
           category: home_category.id,
@@ -133,6 +141,8 @@ after_initialize do
   end
   
   add_to_serializer(:current_user, :homepage_id) { object.user_option.homepage_id }
+  add_to_serializer(:current_user, :member) { object.member }
+  add_to_serializer(:user, :member) { object.member }
   
   module UserOptionExtension
     def homepage
@@ -217,6 +227,10 @@ after_initialize do
     def client_groups
       Group.member_of(Group.client_groups, self)
     end
+    
+    def member
+      Group.member_of(Group.where(name: SiteSetting.pavilion_team_group), self)
+    end
   end
   
   module AdminGroupsControllerExtension
@@ -267,6 +281,7 @@ after_initialize do
   ].each do |field|
     Topic.register_custom_field_type(field, :integer)
     add_to_serializer(:topic_view, field.to_sym) { object.topic.custom_fields[field] }
+    TopicList.preloaded_custom_fields << field if TopicList.respond_to? :preloaded_custom_fields
     PostRevisor.track_topic_field(field.to_sym) do |tc, tf|
       tc.record_change(field, tc.topic.custom_fields[field], tf)
       tc.topic.custom_fields[field] = tf
@@ -274,8 +289,7 @@ after_initialize do
   end
   
   [
-    'billable_hours_week',
-    'billable_total_month'
+    'earnings_target_month'
   ].each do |field|
     User.register_custom_field_type(field, :integer)
     add_to_serializer(:user, field.to_sym) { object.custom_fields[field] }
@@ -298,14 +312,18 @@ after_initialize do
     %w{users u}.each_with_index do |root_path, index|
       get "#{root_path}/:username/work" => "pavilion_work/work#index", constraints: { username: RouteFormat.username }
     end
+    
+    scope module: 'pavilion_work', constraints: AdminConstraint.new do
+      get 'admin/work' => 'admin#index'
+    end
   end
   
-  class PavilionWork::WorkController < ApplicationController
+  class PavilionWork::WorkController < ::ApplicationController
     def index
     end
 
     def update
-      user_fields = params.permit(:billable_hours_week, :billable_total_month)
+      user_fields = params.permit(:earnings_target_month)
       user = current_user
       
       user_fields.each do |field, value|
@@ -330,6 +348,75 @@ after_initialize do
       end
       
       render json: success_json.merge(result)
+    end
+  end
+  
+  class PavilionWork::AdminController < ::Admin::AdminController
+    def index
+      if params[:month] && params[:year]
+        member_billable_totals = PavilionWork::Members.billable_totals(
+          month: params[:month],
+          year: params[:year]
+        )
+        
+        render_json_dump(
+          members: ActiveModel::ArraySerializer.new(member_billable_totals,
+            each_serializer: PavilionWork::MemberSerializer
+          ),
+          month: params[:month],
+          year: params[:year]
+        )
+      else
+        render json: success_json
+      end
+    end
+  end
+  
+  class PavilionWork::Members
+    def self.billable_totals(opts)
+      users = Group.find_by(name: 'members').users
+      totals = []
+      
+      users.each do |user|
+        month = Date.strptime("#{opts[:month]}/#{opts[:year]}", "%m/%Y")
+        assigned = TopicQuery.new(user, 
+          assigned: user.username,
+          calendar: true,
+          start: month.at_beginning_of_month,
+          end: month.at_end_of_month
+        ).list_latest.topics
+                
+        if assigned.any?
+          billable_total_month = assigned.map do |a|
+            a.custom_fields['billable_hours'].to_i * a.custom_fields['billable_hour_rate'].to_i
+          end.inject(0, &:+)
+          
+          totals.push(
+            user: user,
+            billable_total_month: billable_total_month,
+          )
+        end
+      end
+      
+      totals
+    end
+  end
+  
+  class PavilionWork::MemberSerializer < ::ApplicationSerializer
+    attributes :user,
+               :billable_total_month,
+               :earnings_target_month
+    
+    def user
+      BasicUserSerializer.new(object[:user], root: false).as_json
+    end
+    
+    def billable_total_month
+      object[:billable_total_month].to_i
+    end
+    
+    def earnings_target_month
+      object[:user].custom_fields['earnings_target_month']
     end
   end
 end

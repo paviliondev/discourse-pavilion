@@ -4,6 +4,8 @@ en:
       groups:
         client_group:
           label: "Client Group"
+      work:
+        label: "Work"
           
     filters:
       work:
@@ -34,6 +36,5 @@ en:
         label: "Work"
         save: "Save"
         saving: "Saving"
-        billable_hours_week: "Weekly Billable Hours Target"
-        billable_total_month: "Monthly Billable Total Target"
+        earnings_target_month: "Monthly Earnings Target"
       

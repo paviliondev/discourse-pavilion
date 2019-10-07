@@ -11,5 +11,4 @@ en:
     pavilion_home_categories: Pavilion home categories
     pavilion_team_group: Pavilion team group
     pavilion_unassigned_tags: Tags for unassigned topic list
-    max_billable_hours_week: Maximum weekly billable hours target
-    max_billable_total_month: Maximum monthly billable total target
+    max_earnings_target_month: Maximum monthly billable total target

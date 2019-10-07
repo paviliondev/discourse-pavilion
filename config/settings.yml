@@ -34,7 +34,5 @@ plugins:
   pavilion_unassigned_tags:
     type: tag_list
     default: "dev-needed"
-  max_billable_hours_week:
-    default: 40
-  max_billable_total_month:
+  max_earnings_target_month:
     default: 7000

@@ -1,0 +1,32 @@
+{{#d-section pageClass="work"}}
+  <div class="container">
+    <div class='directory'>
+      <div class='clearfix'>
+        {{combo-box content=months value=month}}
+        {{combo-box content=years value=year}}
+      </div>
+
+      {{#if members.length}}
+        <table>
+          <thead>
+            <th>User</th>
+            <th>Billable Total</th>
+            <th>Earnings Target</th>
+          </thead>
+          <tbody>
+            {{#each members as |m|}}
+              <tr>
+                <td>{{m.user.username}}</td>
+                <td>{{m.billable_total_month}}</td>
+                <td>{{m.earnings_target_month}}</td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      {{else}}
+        <div class='clearfix'></div>
+        <p>No Results</p>
+      {{/if}}
+    </div>
+  </div>
+{{/d-section}}
