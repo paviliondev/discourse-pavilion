@@ -68,6 +68,20 @@ after_initialize do
       @options[:tags] = SiteSetting.pavilion_unassigned_tags.split('|')
       create_list(:unassigned)
     end
+    
+    def list_work
+      @options[:assigned] = @user.username
+      
+      create_list(:work) do |result|
+        result.where("topics.id NOT IN (
+          SELECT topic_id FROM topic_tags
+          WHERE topic_tags.tag_id in (
+            SELECT id FROM tags
+            WHERE tags.name = 'done'
+          )
+        )")
+      end
+    end
   end
   
   require_dependency 'topic_list_item_serializer'
