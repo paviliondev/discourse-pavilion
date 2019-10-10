@@ -295,6 +295,7 @@ after_initialize do
   ].each do |field|
     Topic.register_custom_field_type(field, :integer)
     add_to_serializer(:topic_view, field.to_sym) { object.topic.custom_fields[field] }
+    add_to_serializer(:topic_list_item, field.to_sym) { object.custom_fields[field] }
     TopicList.preloaded_custom_fields << field if TopicList.respond_to? :preloaded_custom_fields
     PostRevisor.track_topic_field(field.to_sym) do |tc, tf|
       tc.record_change(field, tc.topic.custom_fields[field], tf)

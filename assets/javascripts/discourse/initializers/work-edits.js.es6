@@ -9,13 +9,6 @@ export default {
     Composer.serializeToTopic('actual_hours', 'topic.actual_hours');
 
     withPluginApi('0.8.23', api => {
-      api.modifyClass('model:topic', {
-        @computed('billable_hours', 'billable_hour_rate')
-        billableTotal(hours, rate) {
-          return hours * rate;
-        }
-      });
-      
       api.modifyClass('controller:topic', {
         @observes('editingTopic')
         setEditingTopicOnModel() {

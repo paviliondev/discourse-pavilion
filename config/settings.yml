@@ -35,4 +35,4 @@ plugins:
     type: tag_list
     default: "dev-needed"
   max_earnings_target_month:
-    default: 7000
+    default: 5000

@@ -1,22 +1,3 @@
 {{#unless model.editingTopic}}
-  {{#if model.billable_hours}}
-    <div class="work-label">
-      {{d-icon 'clock-o'}}
-      {{model.billable_hours}}
-    </div>
-  {{/if}}
-  
-  {{#if model.billable_hour_rate}}
-    <div class="work-label">
-      {{d-icon 'funnel-dollar'}}
-      {{model.billable_hour_rate}}
-    </div>
-  {{/if}}
-  
-  {{#if model.billableTotal}}
-    <div class="work-label">
-      {{d-icon 'dollar-sign'}}
-      {{model.billableTotal}}
-    </div>
-  {{/if}}
+  {{work-data model}}
 {{/unless}}
