@@ -204,3 +204,28 @@ section.landing {
 .topic-list-item .work-data {
   font-size: .8706em;
 }
+
+.admin-work {
+  .header {
+    display: inline-block;
+    width: 100%;
+    
+    h3 {
+      float: left;
+    }
+    
+    .combo-box {
+      float: right;
+      margin-left: 15px;
+    }
+  }
+  
+  .work-container {
+    margin-top: 10px;
+    margin-bottom: 30px;
+  }
+  
+  .title h4 {
+    display: inline-block;
+  }
+}

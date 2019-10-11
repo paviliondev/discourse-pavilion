@@ -1,32 +1,47 @@
 {{#d-section pageClass="work"}}
   <div class="container">
     <div class='directory'>
-      <div class='clearfix'>
+      <div class="header">
+        <h3>Work Dashboard</h3>
         {{combo-box content=months value=month}}
         {{combo-box content=years value=year}}
       </div>
 
-      {{#if members.length}}
-        <table>
-          <thead>
-            <th>User</th>
-            <th>Billable Total</th>
-            <th>Earnings Target</th>
-            <th>Actual Hours</th>
-            <th>Actual Hours Target</th>
-          </thead>
-          <tbody>
-            {{#each members as |m|}}
-              <tr>
-                <td>{{m.user.username}}</td>
-                <td>{{m.billable_total_month}}</td>
-                <td>{{m.earnings_target_month}}</td>
-                <td>{{m.actual_hours_month}}</td>
-                <td>{{m.actual_hours_target_month}}</td>
-              </tr>
-            {{/each}}
-          </tbody>
-        </table>
+      {{#if currentMonth.length}}
+        <div class="work-data-table-container work-container">
+          <h4>
+            {{monthName}}
+            <span>Data</span>
+          </h4>
+          <table>
+            <thead>
+              <th>User</th>
+              {{#each workPropNames as |prop|}}
+                <th>{{i18n (concat 'admin.work.' prop)}}</th>
+              {{/each}}
+            </thead>
+            <tbody>
+              {{#each currentMonth as |m|}}
+                <tr>
+                  <td>{{m.user.username}}</td>
+                  {{#each workPropNames as |prop|}}
+                    <td>{{renderProp m prop}}</td>
+                  {{/each}}
+                </tr>
+              {{/each}}
+            </tbody>
+          </table>
+        </div>
+        
+        {{#if chartModel}}
+          <div class="work-data-chart-container work-container">
+            <div class="title">
+              <h4>3 Month Trend for</h4>
+              {{combo-box content=workProps value=chartProp}}
+            </div>
+            {{work-data-chart model=chartModel}}
+          </div>
+        {{/if}}
       {{else}}
         <div class='clearfix'></div>
         <p>No Results</p>

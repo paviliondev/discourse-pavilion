@@ -6,6 +6,10 @@ en:
           label: "Client Group"
       work:
         label: "Work"
+        billable_total: Billable Total
+        earnings_target: Earnings Target
+        actual_hours: Actual Hours
+        actual_hours_target: Actual Hours Target
           
     filters:
       work:

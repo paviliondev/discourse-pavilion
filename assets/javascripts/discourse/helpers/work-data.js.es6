@@ -30,3 +30,7 @@ registerUnbound("work-data", function(topic) {
   
   return new Handlebars.SafeString(`<div class="work-data">${html}</div>`);
 });
+
+registerUnbound('renderProp', function(data, prop) {
+  return data[`${prop}_month`];
+})

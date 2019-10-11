@@ -372,33 +372,35 @@ after_initialize do
   class PavilionWork::AdminController < ::Admin::AdminController
     def index
       if params[:month] && params[:year]
-        member_totals = PavilionWork::Members.totals(
-          month: params[:month],
-          year: params[:year]
-        )
-        
-        members = ActiveModel::ArraySerializer.new(member_totals,
-          each_serializer: PavilionWork::MemberSerializer
-        )
-        
         render_json_dump(
-          members: members,
-          month: params[:month],
-          year: params[:year]
+          success: true,
+          current_month: month_data(params[:month].to_i),
+          previous_month: month_data(params[:month].to_i - 1),
+          next_month: month_data(params[:month].to_i + 1)
         )
       else
-        render json: success_json
+        render json: failed_json
       end
+    end
+    
+    def month_data(month)
+      ActiveModel::ArraySerializer.new(
+        PavilionWork::Members.month_totals(
+          month: month,
+          year: params[:year].to_i
+        ),
+        each_serializer: PavilionWork::MemberSerializer
+      )
     end
   end
   
   class PavilionWork::Members
-    def self.totals(opts)
+    def self.month_totals(opts)
       users = Group.find_by(name: 'members').users
       totals = []
             
       users.each do |user|
-        month = Date.strptime("#{opts[:month]}/#{opts[:year]}", "%m/%Y")
+        month = Date.strptime("#{opts[:month].to_s}/#{opts[:year].to_s}", "%m/%Y")
         assigned = TopicQuery.new(user, 
           assigned: user.username,
           calendar: true,
@@ -415,7 +417,8 @@ after_initialize do
           totals.push(
             user: user,
             billable_total_month: billable_total_month,
-            actual_hours_month: actual_hours_month
+            actual_hours_month: actual_hours_month,
+            month: month.strftime("%Y-%m")
           )
         end
       end
@@ -429,7 +432,8 @@ after_initialize do
                :billable_total_month,
                :earnings_target_month,
                :actual_hours_month,
-               :actual_hours_target_month
+               :actual_hours_target_month,
+               :month
     
     def user
       BasicUserSerializer.new(object[:user], root: false).as_json
@@ -449,6 +453,10 @@ after_initialize do
     
     def actual_hours_target_month
       object[:user].custom_fields['actual_hours_target_month']
+    end
+    
+    def month
+      object[:month]
     end
   end
 end
