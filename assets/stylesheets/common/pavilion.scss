@@ -206,31 +206,28 @@ section.landing {
 }
 
 .admin-work {
-  .header {
-    display: inline-block;
-    width: 100%;
+  .work-container {
+    margin-top: 10px;
+    margin-bottom: 30px;
     
-    h3 {
-      float: left;
+    table {
+      margin: 0;
+    }
+  }
+  
+  .title {
+    display: inline-flex;
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: space-between;
+    align-items: center;
+    
+    h4 {
+      margin: 0 0 0 10px;
     }
     
     .combo-box {
       float: right;
-      margin-left: 10px;
-    }
-  }
-  
-  .work-container {
-    margin-top: 10px;
-    margin-bottom: 30px;
-  }
-  
-  .title {
-    h4 {
-      display: inline-block;
-    }
-    
-    .combo-box {
       margin-left: 10px;
     }
   }

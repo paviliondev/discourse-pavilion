@@ -1,18 +1,15 @@
 {{#d-section pageClass="work"}}
   <div class="container">
     <div class='directory'>
-      <div class="header">
-        <h3>Work Dashboard</h3>
-        {{combo-box content=months value=month}}
-        {{combo-box content=years value=year}}
-      </div>
-
       {{#if currentMonth.length}}
         <div class="work-data-table-container work-container">
-          <h4>
-            {{monthName}}
-            <span>Data</span>
-          </h4>
+          <div class="title">
+            <h4>{{monthName}}</h4>
+            <div class="controls">
+              {{combo-box content=months value=month}}
+              {{combo-box content=years value=year}}
+            </div>
+          </div>
           <table>
             <thead>
               <th>User</th>
@@ -36,8 +33,10 @@
         {{#if chartModel}}
           <div class="work-data-chart-container work-container">
             <div class="title">
-              <h4>3 Month Trend for</h4>
-              {{combo-box content=workProps value=chartProp}}
+              <h4>3 Month Snapshot</h4>
+              <div class="controls">
+                {{combo-box content=workProps value=chartProp}}
+              </div>
             </div>
             {{work-data-chart model=chartModel}}
           </div>
