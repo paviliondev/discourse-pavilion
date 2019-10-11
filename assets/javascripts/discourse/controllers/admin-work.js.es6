@@ -55,7 +55,7 @@ export default Ember.Controller.extend({
   @computed('currentMonth', 'previousMonth', 'nextMonth', 'chartProp')
   chartData(currentMonth, previousMonth, nextMonth, chartProp) {
     if (currentMonth) {
-      const allMonths = [currentMonth, previousMonth, nextMonth];
+      const allMonths = [currentMonth, previousMonth, nextMonth].filter(m => m[0]);
       return currentMonth.map(cm => cm.user.username).map(username => {
         return {
           color: colors[username],
