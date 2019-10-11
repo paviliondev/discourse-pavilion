@@ -216,7 +216,7 @@ section.landing {
     
     .combo-box {
       float: right;
-      margin-left: 15px;
+      margin-left: 10px;
     }
   }
   
@@ -225,7 +225,13 @@ section.landing {
     margin-bottom: 30px;
   }
   
-  .title h4 {
-    display: inline-block;
+  .title {
+    h4 {
+      display: inline-block;
+    }
+    
+    .combo-box {
+      margin-left: 10px;
+    }
   }
 }
