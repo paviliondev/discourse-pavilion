@@ -222,8 +222,13 @@ section.landing {
     justify-content: space-between;
     align-items: center;
     
-    h4 {
+    > span {
       margin: 0 0 0 10px;
+      font-size: 1.1487em;
+    }
+    
+    .controls {
+      display: flex;
     }
     
     .combo-box {

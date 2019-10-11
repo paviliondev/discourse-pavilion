@@ -4,7 +4,7 @@
       {{#if currentMonth.length}}
         <div class="work-data-table-container work-container">
           <div class="title">
-            <h4>{{monthName}}</h4>
+            <span>{{monthName}}</span>
             <div class="controls">
               {{combo-box content=months value=month}}
               {{combo-box content=years value=year}}
@@ -33,7 +33,7 @@
         {{#if chartModel}}
           <div class="work-data-chart-container work-container">
             <div class="title">
-              <h4>3 Month Snapshot</h4>
+              <span>Snapshot</span>
               <div class="controls">
                 {{combo-box content=workProps value=chartProp}}
               </div>
