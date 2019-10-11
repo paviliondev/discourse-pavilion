@@ -18,6 +18,7 @@ if respond_to?(:register_svg_icon)
   register_svg_icon "clock-o"
   register_svg_icon "dollar-sign"
   register_svg_icon "funnel-dollar"
+  register_svg_icon "stopwatch"
 end
 
 after_initialize do
@@ -290,6 +291,7 @@ after_initialize do
   add_to_serializer(:basic_group, :client_group) { object.client_group }
   
   [
+    'actual_hours',
     'billable_hours',
     'billable_hour_rate'
   ].each do |field|
@@ -304,6 +306,7 @@ after_initialize do
   end
   
   [
+    'actual_hours_target_month',
     'earnings_target_month'
   ].each do |field|
     User.register_custom_field_type(field, :integer)
@@ -338,7 +341,7 @@ after_initialize do
     end
 
     def update
-      user_fields = params.permit(:earnings_target_month)
+      user_fields = params.permit(:earnings_target_month, :actual_hours_target_month)
       user = current_user
       
       user_fields.each do |field, value|
@@ -369,15 +372,17 @@ after_initialize do
   class PavilionWork::AdminController < ::Admin::AdminController
     def index
       if params[:month] && params[:year]
-        member_billable_totals = PavilionWork::Members.billable_totals(
+        member_totals = PavilionWork::Members.totals(
           month: params[:month],
           year: params[:year]
         )
         
+        members = ActiveModel::ArraySerializer.new(member_totals,
+          each_serializer: PavilionWork::MemberSerializer
+        )
+        
         render_json_dump(
-          members: ActiveModel::ArraySerializer.new(member_billable_totals,
-            each_serializer: PavilionWork::MemberSerializer
-          ),
+          members: members,
           month: params[:month],
           year: params[:year]
         )
@@ -388,10 +393,10 @@ after_initialize do
   end
   
   class PavilionWork::Members
-    def self.billable_totals(opts)
+    def self.totals(opts)
       users = Group.find_by(name: 'members').users
       totals = []
-      
+            
       users.each do |user|
         month = Date.strptime("#{opts[:month]}/#{opts[:year]}", "%m/%Y")
         assigned = TopicQuery.new(user, 
@@ -400,15 +405,17 @@ after_initialize do
           start: month.at_beginning_of_month,
           end: month.at_end_of_month
         ).list_latest.topics
-                
+                        
         if assigned.any?
           billable_total_month = assigned.map do |a|
             a.custom_fields['billable_hours'].to_i * a.custom_fields['billable_hour_rate'].to_i
           end.inject(0, &:+)
-          
+          actual_hours_month = assigned.map { |a| a.custom_fields['actual_hours'].to_i }.inject(0, &:+)
+                    
           totals.push(
             user: user,
             billable_total_month: billable_total_month,
+            actual_hours_month: actual_hours_month
           )
         end
       end
@@ -420,7 +427,9 @@ after_initialize do
   class PavilionWork::MemberSerializer < ::ApplicationSerializer
     attributes :user,
                :billable_total_month,
-               :earnings_target_month
+               :earnings_target_month,
+               :actual_hours_month,
+               :actual_hours_target_month
     
     def user
       BasicUserSerializer.new(object[:user], root: false).as_json
@@ -432,6 +441,14 @@ after_initialize do
     
     def earnings_target_month
       object[:user].custom_fields['earnings_target_month']
+    end
+    
+    def actual_hours_month
+      object[:actual_hours_month].to_i
+    end
+    
+    def actual_hours_target_month
+      object[:user].custom_fields['actual_hours_target_month']
     end
   end
 end

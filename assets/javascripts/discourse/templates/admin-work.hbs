@@ -12,6 +12,8 @@
             <th>User</th>
             <th>Billable Total</th>
             <th>Earnings Target</th>
+            <th>Actual Hours</th>
+            <th>Actual Hours Target</th>
           </thead>
           <tbody>
             {{#each members as |m|}}
@@ -19,6 +21,8 @@
                 <td>{{m.user.username}}</td>
                 <td>{{m.billable_total_month}}</td>
                 <td>{{m.earnings_target_month}}</td>
+                <td>{{m.actual_hours_month}}</td>
+                <td>{{m.actual_hours_target_month}}</td>
               </tr>
             {{/each}}
           </tbody>

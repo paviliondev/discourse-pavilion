@@ -4,9 +4,15 @@ import { popupAjaxError } from 'discourse/lib/ajax-error';
 export default Ember.Controller.extend({  
   actions: {
     save() {
-      const data = {
-        earnings_target_month: this.get('model.earnings_target_month')
-      }
+      const props = [
+        'earnings_target_month',
+        'actual_hours_target_month'
+      ];
+      const data = {};
+      
+      props.forEach(p => {
+        data[p] = this.get(`model.${p}`);
+      })
       
       this.set('saving', true);
       
@@ -14,9 +20,11 @@ export default Ember.Controller.extend({
         type: 'PUT',
         data
       }).then(result => {
-        if (result.earnings_target_month) {
-          this.set('model.custom_fields.earnings_target_month', result.earnings_target_month)
-        }
+        props.forEach(p => {
+          if (result[p]) {
+            this.set(`model.${p}`, result[p]);
+          }
+        });
       }).catch(popupAjaxError).finally(() => {
         this.set('saving', false);
       });

@@ -39,11 +39,12 @@ export default Discourse.Route.extend({
   },
   
   setupController(controller, model) {
-    console.log(model.members);
-    controller.setProperties({
-      members: model.members,
-      year: Number(model.year),
-      month: Number(model.month)
-    })
+    if (model) {
+      controller.setProperties({
+        members: model.members,
+        year: Number(model.year),
+        month: Number(model.month)
+      });
+    }
   }
 });

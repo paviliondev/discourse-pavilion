@@ -9,6 +9,7 @@ registerUnbound("work-data", function(topic) {
   const hours = topic.billable_hours || 0;
   const rate = topic.billable_hour_rate || 0;
   const total = hours * rate;
+  const actualHours = topic.actual_hours || 0;
   let html = '';
   
   if (hours) {
@@ -21,6 +22,10 @@ registerUnbound("work-data", function(topic) {
   
   if (total) {
     html += workLabel(total, 'dollar-sign');
+  }
+  
+  if (actualHours) {
+    html += workLabel(total, 'stopwatch');
   }
   
   return new Handlebars.SafeString(`<div class="work-data">${html}</div>`);
