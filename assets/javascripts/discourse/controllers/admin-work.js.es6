@@ -11,8 +11,8 @@ const colors = {
 const workPropNames = [
   'billable_total',
   'earnings_target',
-  'actual_hours',
-  'actual_hours_target',
+  //'actual_hours',
+  //'actual_hours_target',
 ];
 
 export default Ember.Controller.extend({
@@ -22,12 +22,13 @@ export default Ember.Controller.extend({
   
   @computed
   workProps() {
-    return workPropNames.map(p => {
-      return {
-        id: `${p}_month`,
-        name: I18n.t(`admin.work.${p}`)
-      }
-    });
+    return workPropNames.filter(p => p.indexOf('target') === -1)
+      .map(p => {
+        return {
+          id: `${p}_month`,
+          name: I18n.t(`admin.work.${p}`)
+        }
+      });
   },
 
   @observes('month', 'year')
