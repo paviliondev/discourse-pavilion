@@ -331,7 +331,7 @@ after_initialize do
       get "#{root_path}/:username/work" => "pavilion_work/work#index", constraints: { username: RouteFormat.username }
     end
     
-    scope module: 'pavilion_work', constraints: AdminConstraint.new do
+    scope module: 'pavilion_work', constraints: StaffConstraint.new do
       get 'admin/work' => 'admin#index'
     end
   end
