@@ -34,6 +34,7 @@ en:
       work:
         billable_hours: "Billable Hours"
         billable_hour_rate: "Hour Rate"
+        actual_hours: "Actual Hours"
         
     user:
       work:
