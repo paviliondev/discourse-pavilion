@@ -5,28 +5,6 @@ plugins:
   pavilion_home_site_description:
     client: true
     default: "We're a freelancer cooperative that works exclusively with <a href='https://discourse.org' class='animated-link' target='_blank'>Discourse</a>."
-  pavilion_home_box_1_text:
-    client: true
-    default: "Hire us to work on your Discourse"
-  pavilion_home_box_1_url:
-    client: true
-    default: "/new-message?groupname=contact&title=Consulting%20Enquiry"
-  pavilion_home_box_2_text:
-    client: true
-    default: "Ask about our open source plugins"
-  pavilion_home_box_2_url:
-    client: true
-    default: "/new-message?groupname=contact&title=Plugin%20Enquiry"
-  pavilion_home_box_3_text:
-    client: true
-    default: "Join our cooperative"
-  pavilion_home_box_3_url:
-    client: true
-    default: "/new-message?groupname=contact&title=Join%20Pavilion"
-  pavilion_home_categories:
-    type: category_list
-    default: ""
-    client: true
   pavilion_team_group:
     type: group
     default: "members"

@@ -2,13 +2,6 @@ en:
   site_settings:
     pavilion_home_site_title: Pavilion home title
     pavilion_home_site_description: Pavilion home description
-    pavilion_home_box_1_text: Pavilion home box 1 text
-    pavilion_home_box_1_url: Pavilion home box 1 url
-    pavilion_home_box_2_text: Pavilion home box 2 text
-    pavilion_home_box_2_url: Pavilion home box 2 url
-    pavilion_home_box_3_text: Pavilion home box 3 text
-    pavilion_home_box_3_url: Pavilion home box 3 url
-    pavilion_home_categories: Pavilion home categories
     pavilion_team_group: Pavilion team group
     pavilion_unassigned_tags: Tags for unassigned topic list
     max_earnings_target_month: Maximum monthly billable total target
