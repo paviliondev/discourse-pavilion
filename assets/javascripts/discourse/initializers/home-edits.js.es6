@@ -6,6 +6,7 @@ export default {
   name: 'home-edits',
   initialize(container) {
     const currentUser = container.lookup('current-user:main');
+    const siteSettings = container.lookup('site-settings:main');
     if (!currentUser || !currentUser.homepage_id) setDefaultHomepage('home');
 
     withPluginApi('0.8.23', api => {
@@ -32,16 +33,18 @@ export default {
       });
 
       api.addNavigationBarItem({
-        name: "unassigned",
-        href: "/unassigned",
+        name: "assigned",
+        href: '/assigned',
+        before: siteSettings.top_menu.split('|')[0],
         customFilter: function (category) {
           return currentUser && currentUser.staff && !category;
         }
       });
-
+      
       api.addNavigationBarItem({
-        name: "work",
-        href: "/work",
+        name: "unassigned",
+        href: '/unassigned',
+        before: siteSettings.top_menu.split('|')[0],
         customFilter: function (category) {
           return currentUser && currentUser.staff && !category;
         }
@@ -53,7 +56,7 @@ export default {
           let core = this._super();
           core.push(...[
             { name: "Home", value: 101 },
-            { name: "Work", value: 102 }
+            { name: "Assigned", value: 102 }
           ]);
           return core;
         },
@@ -63,7 +66,7 @@ export default {
           if (homepageId === 101) {
             setDefaultHomepage("home");
           } else if (homepageId === 102) {
-            setDefaultHomepage("work");
+            setDefaultHomepage("assigned");
           } else {
             this._super();
           }

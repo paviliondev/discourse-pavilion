@@ -12,8 +12,8 @@ en:
         actual_hours_target: Actual Hours Target
           
     filters:
-      work:
-        title: "Work"
+      assigned:
+        title: "Assigned"
         help: "Projects and tasks assigned to you."
       unassigned:
         title: "Unassigned"
@@ -24,10 +24,10 @@ en:
         
     topics:
       bottom:
-        work: "You have no more work topics."
+        assigned: "You have no more assigned topics."
         unassigned: "There are no more unassigned topics."
       none:
-        work: "You have no work!"
+        assigned: "You have no assigned work!"
         unassigned: "There's no unassigned work."
     
     topic:

@@ -6,8 +6,8 @@
           {{i18n 'home.latest_topics'}}
         </span>
         {{#if currentUser.staff}}
-          <a href="/work">
-            {{i18n 'filters.work.title'}}
+          <a href="/assigned">
+            {{i18n 'filters.assigned.title'}}
           </a>
         {{else}}
           {{category-link category}}
@@ -23,7 +23,10 @@
         {{siteSettings.pavilion_home_site_title}}
       </div>
       <div class="home-title">
-        {{{siteSettings.pavilion_home_site_description}}}
+        <span>{{siteSettings.pavilion_home_site_description}}</span>
+        <a href="mailto:{{siteSettings.contact_email}}" class="home-cta" target="_blank">
+          {{siteSettings.pavilion_home_cta}}
+        </a>
       </div>
     {{/if}}
   </div>

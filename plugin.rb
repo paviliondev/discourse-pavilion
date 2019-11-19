@@ -7,8 +7,8 @@
 register_asset "stylesheets/common/pavilion.scss"
 register_asset "stylesheets/mobile/pavilion.scss", :mobile
 
-Discourse.filters.push(:work)
-Discourse.anonymous_filters.push(:work)
+Discourse.filters.push(:assigned)
+Discourse.anonymous_filters.push(:assigned)
 
 Discourse.filters.push(:unassigned)
 Discourse.anonymous_filters.push(:unassigned)
@@ -44,47 +44,6 @@ after_initialize do
     end
   end
   
-  TopicQuery.add_custom_filter(:exclude_done) do |topics, query|
-    if query.options[:exclude_done]
-      topics.where("topics.id NOT IN (
-         SELECT topic_id FROM topic_tags
-         WHERE topic_tags.tag_id in (
-           SELECT id FROM tags
-           WHERE tags.name = 'done'
-         )
-       )")
-    else
-      topics
-    end
-  end
-  
-  TopicQuery.add_custom_filter(:calendar) do |topics, query|
-    topics
-  end
-  
-  require_dependency 'topic_query'
-  class ::TopicQuery
-    def list_unassigned
-      @options[:assigned] = "nobody"
-      @options[:tags] = SiteSetting.pavilion_unassigned_tags.split('|')
-      create_list(:unassigned)
-    end
-    
-    def list_work
-      @options[:assigned] = @user.username
-      
-      create_list(:work) do |result|
-        result.where("topics.id NOT IN (
-          SELECT topic_id FROM topic_tags
-          WHERE topic_tags.tag_id in (
-            SELECT id FROM tags
-            WHERE tags.name = 'done'
-          )
-        )")
-      end
-    end
-  end
-  
   require_dependency 'topic_list_item_serializer'
   class HomeTopicListItemSerializer < ::TopicListItemSerializer
     def excerpt
@@ -103,6 +62,42 @@ after_initialize do
     has_many :topics, serializer: HomeTopicListItemSerializer, embed: :objects
   end
   
+  ## Overrides assign plugin method to exclude PMs from 
+  
+  TopicQuery.add_custom_filter(:exclude_assigned_pms) do |results, topic_query|
+    results
+  end
+
+  add_to_serializer(:topic_list, 'include_assigned_messages_count?') do
+    options = object.instance_variable_get(:@opts)
+
+    if !options.dig(:exclude_assigned_pms) && (assigned_user = options.dig(:assigned))
+      scope.can_assign? ||
+        assigned_user.downcase == scope.current_user&.username_lower
+    end
+  end
+  
+  ##
+  
+  add_to_class(:topic_query, :list_assigned) do
+    list = joined_topic_user.where("
+      topics.id IN (
+        SELECT topic_id FROM topic_custom_fields
+        WHERE name = 'assigned_to_id'
+        AND value = ?)
+    ", user.id.to_s)
+      .order("topics.bumped_at DESC")
+    create_list(:assigned_work, {}, list)
+  end
+  
+  add_to_class(:topic_query, :list_unassigned) do
+    @options[:assigned] = "nobody"
+    if unassigned_tags = SiteSetting.pavilion_unassigned_tags.split('|')
+      @options[:tags] = unassigned_tags
+    end
+    create_list(:unassigned_work)
+  end
+  
   require_dependency 'application_controller'
   require_dependency 'user_serializer'
   class PavilionHome::PageController < ::ApplicationController    
@@ -110,45 +105,45 @@ after_initialize do
       json = {}
       guardian = Guardian.new(current_user)
       
-      if team_group = Group.find_by(name: SiteSetting.pavilion_team_group)
+      about_category = Category.find_by(name: 'About') ||  Category.find_by(id: 1)
+      team_group = Group.find_by(name: SiteSetting.pavilion_team_group)
+      
+      if team_group
         json[:members] = ActiveModel::ArraySerializer.new(
           team_group.users.sample(2),
           each_serializer: UserSerializer,
           scope: guardian
         )
       end
-      
-      topic_list = nil
-      
-      if current_user && current_user.staff?
-        topic_list = TopicQuery.new(current_user,
-          per_page: 6,
-          exclude_done: true,
-          assigned: current_user.username
-        ).list_latest
-      elsif (current_user && (home_category = current_user.home_category))
-        topic_list = TopicQuery.new(current_user,
-          category: home_category.id,
-          per_page: 6
-        ).list_latest
-      end
-      
-      if topic_list
-        json[:topic_list] = TopicListSerializer.new(topic_list,
-          scope: guardian
-        ).as_json
+            
+      if current_user
+        topic_list_opts = {
+          limit: 6
+        }
+        
+        if current_user.staff? || current_user.home_category
+          if current_user.staff?
+            topic_list_opts[:exclude_assigned_pms] = true
+            topic_list_opts[:assigned] = current_user.username
+          elsif current_user.home_category
+            topic_list_opts[:category] = current_user.home_category.id
+          end
+                  
+          topic_list = TopicQuery.new(current_user, topic_list_opts).list_latest
+          
+          json[:topic_list] = serialize_data(topic_list, TopicListSerializer, scope: guardian)
+        end
       end
         
-      if about_category = Category.find_by(name: 'About')
-        if about_topic_list = TopicQuery.new(current_user,
-            per_page: 3,
-            category: about_category.id,
-            no_definitions: true
-          ).list_latest
-          json[:about_topic_list] = HomeTopicListSerializer.new(about_topic_list,
-            scope: guardian
-          ).as_json
-        end
+      if about_topic_list = TopicQuery.new(current_user,
+          per_page: 3,
+          category: about_category.id,
+          no_definitions: true
+        ).list_latest
+        
+        json[:about_topic_list] = HomeTopicListSerializer.new(about_topic_list,
+          scope: guardian
+        ).as_json
       end
       
       render_json_dump(json)
@@ -164,7 +159,7 @@ after_initialize do
       if homepage_id == 101
         "home"
       elsif homepage_id == 102
-        "work"
+        "assigned"
       elsif homepage_id == 103
         "unassigned"
       else

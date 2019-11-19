@@ -4,7 +4,10 @@ plugins:
     default: "Hey, We're Pavilion."
   pavilion_home_site_description:
     client: true
-    default: "We're a freelancer cooperative that works exclusively with <a href='https://discourse.org' class='animated-link' target='_blank'>Discourse</a>."
+    default: "We help people build online communities."
+  pavilion_home_cta:
+    client: true
+    default: "Get in touch"
   pavilion_team_group:
     type: group
     default: "members"
@@ -12,6 +15,7 @@ plugins:
   pavilion_unassigned_tags:
     type: tag_list
     default: "dev-needed"
+    client: true
   max_earnings_target_month:
     default: 5000
   max_actual_hours_target_month:
