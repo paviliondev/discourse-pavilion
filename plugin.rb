@@ -63,40 +63,36 @@ after_initialize do
   
   ## Overrides assign plugin method to exclude PMs from 
   
-  if SiteSetting.respond_to?(:assign_enabled) && SiteSetting.assign_enabled
-    
-    TopicQuery.add_custom_filter(:exclude_assigned_pms) do |results, topic_query|
-      results
-    end
+  TopicQuery.add_custom_filter(:exclude_assigned_pms) do |results, topic_query|
+    results
+  end
 
-    add_to_serializer(:topic_list, 'include_assigned_messages_count?') do
-      options = object.instance_variable_get(:@opts)
+  add_to_serializer(:topic_list, 'include_assigned_messages_count?') do
+    options = object.instance_variable_get(:@opts)
 
-      if !options.dig(:exclude_assigned_pms) && (assigned_user = options.dig(:assigned))
-        scope.can_assign? ||
-          assigned_user.downcase == scope.current_user&.username_lower
-      end
+    if !options.dig(:exclude_assigned_pms) && (assigned_user = options.dig(:assigned))
+      scope.can_assign? ||
+        assigned_user.downcase == scope.current_user&.username_lower
     end
+  end
+
+  add_to_class(:topic_query, :list_assigned) do
+    list = joined_topic_user.where("
+      topics.id IN (
+        SELECT topic_id FROM topic_custom_fields
+        WHERE name = 'assigned_to_id'
+        AND value = ?)
+    ", user.id.to_s)
+      .order("topics.bumped_at DESC")
+    create_list(:assigned_work, {}, list)
+  end
   
-    add_to_class(:topic_query, :list_assigned) do
-      list = joined_topic_user.where("
-        topics.id IN (
-          SELECT topic_id FROM topic_custom_fields
-          WHERE name = 'assigned_to_id'
-          AND value = ?)
-      ", user.id.to_s)
-        .order("topics.bumped_at DESC")
-      create_list(:assigned_work, {}, list)
+  add_to_class(:topic_query, :list_unassigned) do
+    @options[:assigned] = "nobody"
+    if unassigned_tags = SiteSetting.pavilion_unassigned_tags.split('|')
+      @options[:tags] = unassigned_tags
     end
-    
-    add_to_class(:topic_query, :list_unassigned) do
-      @options[:assigned] = "nobody"
-      if unassigned_tags = SiteSetting.pavilion_unassigned_tags.split('|')
-        @options[:tags] = unassigned_tags
-      end
-      create_list(:unassigned_work)
-    end
-    
+    create_list(:unassigned_work)
   end
   
   require_dependency 'application_controller'
@@ -293,9 +289,10 @@ after_initialize do
     'billable_hours',
     'billable_hour_rate'
   ].each do |field|
-    add_to_serializer(:topic_view, field.to_sym) { object.topic.custom_fields[field] }
-    add_to_serializer(:topic_list_item, field.to_sym) { object.custom_fields[field] }
-    TopicList.preloaded_custom_fields << field if TopicList.respond_to? :preloaded_custom_fields
+    add_to_class(:topic, field.to_sym) { custom_fields[field] }
+    add_to_serializer(:topic_view, field.to_sym) { object.topic.send(field) }
+    add_to_serializer(:topic_list_item, field.to_sym) { object.send(field) }
+    TopicList.preloaded_custom_fields << field if TopicList.respond_to? :preloaded_custom_fields 
     PostRevisor.track_topic_field(field.to_sym) do |tc, tf|
       tc.record_change(field, tc.topic.custom_fields[field], tf)
       tc.topic.custom_fields[field] = tf
@@ -306,8 +303,8 @@ after_initialize do
     'actual_hours_target_month',
     'earnings_target_month'
   ].each do |field|
-    User.register_custom_field_type(field, :integer)
-    add_to_serializer(:user, field.to_sym) { object.custom_fields[field] }
+    add_to_class(:user, field.to_sym) { custom_fields[field] }
+    add_to_serializer(:user, field.to_sym) { object.send(field) }
     register_editable_user_custom_field field.to_sym if defined? register_editable_user_custom_field
   end
   
@@ -393,34 +390,46 @@ after_initialize do
   end
   
   class PavilionWork::Members
+    
+    ## TODO: turn this into a single SQL query
+    
     def self.month_totals(opts)
-      users = Group.find_by(name: 'members').users
-      totals = []
-            
-      users.each do |user|
-        month = Date.strptime("#{opts[:month].to_s}/#{opts[:year].to_s}", "%m/%Y")
-        assigned = TopicQuery.new(user, 
-          assigned: user.username,
-          start: month.at_beginning_of_month,
-          end: month.at_end_of_month
-        ).list_latest.topics
+      month = Date.strptime("#{opts[:month].to_s}/#{opts[:year].to_s}", "%m/%Y")
+      month_start = month.at_beginning_of_month
+      month_end = month.at_end_of_month
+      members = Group.find_by(name: 'members').users       
+      
+      members.map do |user|
+        
+        assigned_topics = assigned_in_month(user, month_start, month_end)
                         
-        if assigned.any?
-          billable_total_month = assigned.map do |a|
-            a.custom_fields['billable_hours'].to_i * a.custom_fields['billable_hour_rate'].to_i
+        if assigned_topics.any?
+          
+          billable_total_month = assigned_topics.map do |topic|
+            topic.billable_hours.to_f * topic.billable_hour_rate.to_f
           end.inject(0, &:+)
-          actual_hours_month = assigned.map { |a| a.custom_fields['actual_hours'].to_i }.inject(0, &:+)
+          
+          actual_hours_month = assigned_topics.map do |topic|
+            topic.actual_hours.to_f
+          end.inject(0, &:+)
                     
-          totals.push(
+          {
             user: user,
             billable_total_month: billable_total_month,
             actual_hours_month: actual_hours_month,
             month: month.strftime("%Y-%m")
-          )
+          }
         end
       end
-      
-      totals
+    end
+    
+    def self.assigned_in_month(user, month_start, month_end)
+      TopicQuery.new(Discourse.system_user, 
+        assigned: user.username,
+        start: month_start,
+        end: month_end,
+        limit: false
+      ).list_latest.topics
     end
   end
   
