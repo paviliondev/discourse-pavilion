@@ -411,9 +411,6 @@ after_initialize do
           actual_hours_month = assigned_topics.map do |topic|
             topic.actual_hours.to_f
           end.inject(0, &:+)
-          
-          puts "billable_total_month: #{billable_total_month}"
-          puts "actual_hours_month: #{actual_hours_month}"
                     
           {
             user: user,
