@@ -25,7 +25,7 @@ registerUnbound("work-data", function(topic) {
   }
   
   if (actualHours) {
-    html += workLabel(total, 'stopwatch');
+    html += workLabel(actualHours, 'stopwatch');
   }
   
   return new Handlebars.SafeString(`<div class="work-data">${html}</div>`);

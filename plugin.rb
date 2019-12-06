@@ -397,10 +397,9 @@ after_initialize do
       month = Date.strptime("#{opts[:month].to_s}/#{opts[:year].to_s}", "%m/%Y")
       month_start = month.at_beginning_of_month
       month_end = month.at_end_of_month
-      members = Group.find_by(name: 'members').users       
-      
-      members.map do |user|
-        
+      members = Group.find_by(name: 'members').users
+          
+      members.map do |user|        
         assigned_topics = assigned_in_month(user, month_start, month_end)
                         
         if assigned_topics.any?
@@ -412,6 +411,9 @@ after_initialize do
           actual_hours_month = assigned_topics.map do |topic|
             topic.actual_hours.to_f
           end.inject(0, &:+)
+          
+          puts "billable_total_month: #{billable_total_month}"
+          puts "actual_hours_month: #{actual_hours_month}"
                     
           {
             user: user,
@@ -427,8 +429,7 @@ after_initialize do
       TopicQuery.new(Discourse.system_user, 
         assigned: user.username,
         start: month_start,
-        end: month_end,
-        limit: false
+        end: month_end
       ).list_latest.topics
     end
   end
