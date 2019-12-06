@@ -399,11 +399,10 @@ after_initialize do
       month_end = month.at_end_of_month
       members = Group.find_by(name: 'members').users
           
-      members.map do |user|        
+      members.reduce([]) do |result, user|     
         assigned_topics = assigned_in_month(user, month_start, month_end)
                         
         if assigned_topics.any?
-          
           billable_total_month = assigned_topics.map do |topic|
             topic.billable_hours.to_f * topic.billable_hour_rate.to_f
           end.inject(0, &:+)
@@ -412,13 +411,15 @@ after_initialize do
             topic.actual_hours.to_f
           end.inject(0, &:+)
                     
-          {
+          result.push(
             user: user,
             billable_total_month: billable_total_month,
             actual_hours_month: actual_hours_month,
             month: month.strftime("%Y-%m")
-          }
+          )
         end
+        
+        result
       end
     end
     
