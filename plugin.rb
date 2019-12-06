@@ -36,8 +36,7 @@ after_initialize do
   end
   
   class HomepageUserSerializer < ::BasicUserSerializer
-    attributes :title,
-               :bio
+    attributes :title, :bio
     
     def bio
       object.user_profile.bio_processed
@@ -64,38 +63,40 @@ after_initialize do
   
   ## Overrides assign plugin method to exclude PMs from 
   
-  TopicQuery.add_custom_filter(:exclude_assigned_pms) do |results, topic_query|
-    results
-  end
-
-  add_to_serializer(:topic_list, 'include_assigned_messages_count?') do
-    options = object.instance_variable_get(:@opts)
-
-    if !options.dig(:exclude_assigned_pms) && (assigned_user = options.dig(:assigned))
-      scope.can_assign? ||
-        assigned_user.downcase == scope.current_user&.username_lower
+  if SiteSetting.respond_to?(:assign_enabled) && SiteSetting.assign_enabled
+    
+    TopicQuery.add_custom_filter(:exclude_assigned_pms) do |results, topic_query|
+      results
     end
-  end
-  
-  ##
-  
-  add_to_class(:topic_query, :list_assigned) do
-    list = joined_topic_user.where("
-      topics.id IN (
-        SELECT topic_id FROM topic_custom_fields
-        WHERE name = 'assigned_to_id'
-        AND value = ?)
-    ", user.id.to_s)
-      .order("topics.bumped_at DESC")
-    create_list(:assigned_work, {}, list)
-  end
-  
-  add_to_class(:topic_query, :list_unassigned) do
-    @options[:assigned] = "nobody"
-    if unassigned_tags = SiteSetting.pavilion_unassigned_tags.split('|')
-      @options[:tags] = unassigned_tags
+
+    add_to_serializer(:topic_list, 'include_assigned_messages_count?') do
+      options = object.instance_variable_get(:@opts)
+
+      if !options.dig(:exclude_assigned_pms) && (assigned_user = options.dig(:assigned))
+        scope.can_assign? ||
+          assigned_user.downcase == scope.current_user&.username_lower
+      end
     end
-    create_list(:unassigned_work)
+  
+    add_to_class(:topic_query, :list_assigned) do
+      list = joined_topic_user.where("
+        topics.id IN (
+          SELECT topic_id FROM topic_custom_fields
+          WHERE name = 'assigned_to_id'
+          AND value = ?)
+      ", user.id.to_s)
+        .order("topics.bumped_at DESC")
+      create_list(:assigned_work, {}, list)
+    end
+    
+    add_to_class(:topic_query, :list_unassigned) do
+      @options[:assigned] = "nobody"
+      if unassigned_tags = SiteSetting.pavilion_unassigned_tags.split('|')
+        @options[:tags] = unassigned_tags
+      end
+      create_list(:unassigned_work)
+    end
+    
   end
   
   require_dependency 'application_controller'
@@ -122,7 +123,9 @@ after_initialize do
         }
         
         if current_user.staff? || current_user.home_category
-          if current_user.staff?
+          if current_user.staff? &&
+             SiteSetting.respond_to?(:assign_enabled) &&
+             SiteSetting.assign_enabled
             topic_list_opts[:exclude_assigned_pms] = true
             topic_list_opts[:assigned] = current_user.username
           elsif current_user.home_category
@@ -366,11 +369,12 @@ after_initialize do
   class PavilionWork::AdminController < ::Admin::AdminController
     def index
       if params[:month] && params[:year]
+        mi = params[:month].to_i
         render_json_dump(
           success: true,
-          current_month: month_data(params[:month].to_i),
-          previous_month: month_data(params[:month].to_i - 1),
-          next_month: month_data(params[:month].to_i + 1)
+          current_month: month_data(mi),
+          previous_month: month_data(mi === 1 ? 12 : mi - 1),
+          next_month: month_data(mi === 12 ? 1 : mi + 1)
         )
       else
         render json: failed_json
@@ -397,7 +401,6 @@ after_initialize do
         month = Date.strptime("#{opts[:month].to_s}/#{opts[:year].to_s}", "%m/%Y")
         assigned = TopicQuery.new(user, 
           assigned: user.username,
-          calendar: true,
           start: month.at_beginning_of_month,
           end: month.at_end_of_month
         ).list_latest.topics
