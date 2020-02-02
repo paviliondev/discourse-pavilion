@@ -87,6 +87,6 @@ export default Ember.Controller.extend({
     return [
       2019,
       2020
-    ]
+    ].map(y => ({id: y, name: y}))
   }
 })
