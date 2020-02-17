@@ -16,6 +16,12 @@ plugins:
     type: tag_list
     default: "dev-needed"
     client: true
+  pavilion_plugin_assignments:
+    type: list
+    default: ""
+  pavilion_plugin_assignment_categories:
+    type: category_list
+    default: ""
   max_earnings_target_month:
     default: 5000
   max_actual_hours_target_month:

@@ -464,4 +464,22 @@ after_initialize do
       object[:month]
     end
   end
+  
+  assignments = {}
+  SiteSetting.pavilion_plugin_assignments.split('|').each do |i|
+    parts = i.split(':')
+    assignments[parts.last] = parts.first
+  end
+  
+  assignment_category_ids = SiteSetting.pavilion_plugin_assignment_categories.split('|').map(&:to_i)
+  
+  on(:topic_created) do |topic, opts, user|
+    plugin = (topic.tags.pluck(:name) & assignments.keys).first
+    assignment_category = assignment_category_ids.include?(topic.category_id.to_i)
+        
+    if plugin && assignment_category
+      assigner = TopicAssigner.new(topic, Discourse.system_user)
+      assigner.assign(User.find_by_username(assignments[plugin]))
+    end
+  end
 end

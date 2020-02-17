@@ -179,13 +179,15 @@ section.landing {
 
 .team-user-card {
   width: 48%;
+  position: relative;
   
   &> div {
-    @extend #user-card;
+    @extend .user-card;
     width: 100%;
     box-shadow: none;
     border: 1px solid $primary;
     border-radius: 4px;
+    position: relative;
     
     .card-content {
       border-radius: 4px;
