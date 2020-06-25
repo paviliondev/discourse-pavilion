@@ -1,8 +1,9 @@
 import { ajax } from 'discourse/lib/ajax';
 import TopicList from "discourse/models/topic-list";
 import User from 'discourse/models/user';
+import DiscourseRoute from "discourse/routes/discourse";
 
-export default Discourse.Route.extend({
+export default DiscourseRoute.extend({
   model() {
     return ajax(`/home`);
   },
