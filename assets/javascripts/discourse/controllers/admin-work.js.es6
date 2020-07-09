@@ -1,4 +1,5 @@
-import { default as computed, observes } from 'ember-addons/ember-computed-decorators';
+import discourseComputed, { observes } from "discourse-common/utils/decorators";
+import Controller from "@ember/controller";
 
 const colors = {
   angus: 'blue',
@@ -10,17 +11,15 @@ const colors = {
 
 const workPropNames = [
   'billable_total',
-  'earnings_target',
-  //'actual_hours',
-  //'actual_hours_target',
+  'earnings_target'
 ];
 
-export default Ember.Controller.extend({
+export default Controller.extend({
   queryParams: ['month', 'year'],
-  chartProp: 'billable_total_month',
+  chartProp: 'total_month',
   workPropNames: workPropNames,
   
-  @computed
+  @discourseComputed
   workProps() {
     return workPropNames.filter(p => p.indexOf('target') === -1)
       .map(p => {
@@ -38,7 +37,7 @@ export default Ember.Controller.extend({
     this.transitionToRoute({ queryParams: { month, year }});
   },
   
-  @computed
+  @discourseComputed
   months() {
     return moment.months().map((name, index) => {
       return {
@@ -48,12 +47,12 @@ export default Ember.Controller.extend({
     });
   },
   
-  @computed('month', 'months')
+  @discourseComputed('month', 'months')
   monthName(month, months) {
     return months.find(m => m.id === month).name;
   },
   
-  @computed('currentMonth', 'previousMonth', 'nextMonth', 'chartProp')
+  @discourseComputed('currentMonth', 'previousMonth', 'nextMonth', 'chartProp')
   chartData(currentMonth, previousMonth, nextMonth, chartProp) {
     if (currentMonth) {
       const allMonths = [currentMonth, previousMonth, nextMonth].filter(m => {
@@ -77,12 +76,12 @@ export default Ember.Controller.extend({
     }
   },
   
-  @computed('chartData.[]')
+  @discourseComputed('chartData.[]')
   chartModel(data) {
     return Ember.Object.create({ data });
   },
   
-  @computed
+  @discourseComputed
   years() {
     return [
       2019,

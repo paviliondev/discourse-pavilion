@@ -1,10 +1,11 @@
 import DiscourseURL from 'discourse/lib/url';
-import { default as computed } from 'ember-addons/ember-computed-decorators';
+import discourseComputed from "discourse-common/utils/decorators";
+import Component from "@ember/component";
 
-export default Ember.Component.extend({
+export default Component.extend({
   classNames: 'about-topic',
 
-  @computed('topic.posters')
+  @discourseComputed('topic.posters')
   displayUser(posters) {
     return posters[0].user;
   },

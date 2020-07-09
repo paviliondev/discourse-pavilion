@@ -48,7 +48,6 @@ export default DiscourseRoute.extend({
   },
   
   setupController(controller, model) {
-    console.log(model)
     if (model) {
       controller.setProperties({
         currentMonth: model.current_month,

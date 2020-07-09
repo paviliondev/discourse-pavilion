@@ -5,13 +5,7 @@
         <span class="text">
           {{i18n 'home.latest_topics'}}
         </span>
-        {{#if currentUser.staff}}
-          <a href="/assigned">
-            {{i18n 'filters.assigned.title'}}
-          </a>
-        {{else}}
-          {{category-link category}}
-        {{/if}}
+        {{category-link category}}
       </div>
       
       {{topic-list topics=topics

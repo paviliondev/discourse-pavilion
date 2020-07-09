@@ -3,9 +3,11 @@ import {
   userPath,
   groupPath
 } from "discourse/lib/url";
+import Component from "@ember/component";
+import { inject as service } from "@ember/service";
 
-export default Ember.Component.extend({
-  router: Ember.inject.service(),
+export default Component.extend({
+  router: service(),
   classNames: ["team-user-card"],
 
   actions: {

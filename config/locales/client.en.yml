@@ -6,35 +6,15 @@ en:
           label: "Client Group"
       work:
         label: "Work"
-        billable_total: Billable Total
         earnings_target: Earnings Target
-        actual_hours: Actual Hours
-        actual_hours_target: Actual Hours Target
-          
-    filters:
-      assigned:
-        title: "Assigned"
-        help: "Projects and tasks assigned to you."
-      unassigned:
-        title: "Unassigned"
-        help: "Unassigned projects and tasks."
     
     home:
       latest_topics: "Latest topics in"
-        
-    topics:
-      bottom:
-        assigned: "You have no more assigned topics."
-        unassigned: "There are no more unassigned topics."
-      none:
-        assigned: "You have no assigned work!"
-        unassigned: "There's no unassigned work."
     
     topic:
       work:
         billable_hours: "Billable Hours"
         billable_hour_rate: "Hour Rate"
-        actual_hours: "Actual Hours"
         
     user:
       work:
@@ -42,5 +22,4 @@ en:
         save: "Save"
         saving: "Saving"
         earnings_target_month: "Monthly Earnings Target"
-        actual_hours_target_month: "Monthly Actual Hours Target"
       

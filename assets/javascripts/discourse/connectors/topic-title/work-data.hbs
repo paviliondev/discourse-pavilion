@@ -1,3 +1,5 @@
 {{#unless model.editingTopic}}
-  {{work-data model}}
+  {{#if model.price}}
+    {{d-icon "dollar"}}<span>{{model.price}}</span>
+  {{/if}}
 {{/unless}}

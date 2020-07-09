@@ -24,5 +24,3 @@ plugins:
     default: ""
   max_earnings_target_month:
     default: 5000
-  max_actual_hours_target_month:
-    default: 240

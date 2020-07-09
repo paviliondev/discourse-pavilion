@@ -8,4 +8,3 @@ en:
     pavilion_plugin_assignments: Plugin assignments. plugin:username
     pavilion_plugin_assignment_categories: Categories where topics are auto-assigned according to plugin assignments.
     max_earnings_target_month: Maximum monthly billable total target
-    max_actual_hours_target_month: Maximum monthly actual hours target
