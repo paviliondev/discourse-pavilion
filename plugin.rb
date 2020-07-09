@@ -482,4 +482,6 @@ after_initialize do
       assigner.assign(User.find_by_username(assignments[plugin]))
     end
   end
+  
+  add_to_serializer(:site_category, :latest_post_created_at) { object.latest_post&.created_at }
 end
