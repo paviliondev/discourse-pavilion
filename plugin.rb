@@ -51,8 +51,6 @@ after_initialize do
     def index
       json = {}
       guardian = Guardian.new(current_user)
-      
-      about_category = Category.find_by(name: 'About') ||  Category.find_by(id: 1)
       team_group = Group.find_by(name: SiteSetting.pavilion_team_group)
       
       if team_group
@@ -61,33 +59,6 @@ after_initialize do
           each_serializer: UserSerializer,
           scope: guardian
         )
-      end
-            
-      if current_user
-        topic_list_opts = {
-          limit: 6
-        }
-        
-        if current_user.staff? || current_user.home_category
-          if current_user.home_category
-            topic_list_opts[:category] = current_user.home_category.id
-          end
-                  
-          topic_list = TopicQuery.new(current_user, topic_list_opts).list_latest
-          
-          json[:topic_list] = serialize_data(topic_list, TopicListSerializer, scope: guardian)
-        end
-      end
-        
-      if about_topic_list = TopicQuery.new(current_user,
-          per_page: 3,
-          category: about_category.id,
-          no_definitions: true
-        ).list_latest
-        
-        json[:about_topic_list] = HomeTopicListSerializer.new(about_topic_list,
-          scope: guardian
-        ).as_json
       end
       
       render_json_dump(json)
