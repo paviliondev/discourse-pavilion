@@ -22,7 +22,6 @@ plugins:
   pavilion_plugin_assignment_categories:
     type: category_list
     default: ""
-  max_earnings_target_month:
-    default: 5000
-  max_actual_hours_target_month:
-    default: 240
+  pavilion_can_see_client_groups:
+    type: group
+    default: ""

@@ -32,31 +32,12 @@ export default {
         }
       });
 
-      api.addNavigationBarItem({
-        name: "assigned",
-        href: '/assigned',
-        before: siteSettings.top_menu.split('|')[0],
-        customFilter: function (category) {
-          return currentUser && currentUser.staff && !category;
-        }
-      });
-      
-      api.addNavigationBarItem({
-        name: "unassigned",
-        href: '/unassigned',
-        before: siteSettings.top_menu.split('|')[0],
-        customFilter: function (category) {
-          return currentUser && currentUser.staff && !category;
-        }
-      });
-
       api.modifyClass('controller:preferences/interface', {
         @computed()
         userSelectableHome() {
           let core = this._super();
           core.push(...[
             { name: "Home", value: 101 },
-            { name: "Assigned", value: 102 }
           ]);
           return core;
         },
@@ -65,8 +46,6 @@ export default {
           const homepageId = this.get("model.user_option.homepage_id");
           if (homepageId === 101) {
             setDefaultHomepage("home");
-          } else if (homepageId === 102) {
-            setDefaultHomepage("assigned");
           } else {
             this._super();
           }

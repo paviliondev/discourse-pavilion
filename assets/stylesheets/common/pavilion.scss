@@ -172,11 +172,6 @@ section.landing {
   }
 }
 
-.list-vote-count {
-  margin-top: 2.5px;
-  margin-left: 2px;
-}
-
 .team-user-card {
   width: 48%;
   position: relative;
@@ -195,46 +190,20 @@ section.landing {
   }
 }
 
-.work-data {
-  display: flex;
-  
-  .work-label {
-    margin-right: 10px;
-  }
-}
-
-.topic-list-item .work-data {
-  font-size: .8706em;
-}
-
-.admin-work {
-  .work-container {
-    margin-top: 10px;
-    margin-bottom: 30px;
-    
-    table {
-      margin: 0;
-    }
-  }
-  
-  .title {
+.groups-boxes .group-box .group-box-inner .group-info-wrapper .group-info {
+  span.group-info-details {
     display: inline-flex;
-    width: 100%;
-    margin-bottom: 10px;
-    justify-content: space-between;
-    align-items: center;
-    
-    > span {
-      margin: 0 0 0 10px;
-      font-size: 1.1487em;
-    }
-    
-    .controls {
-      display: flex;
-    }
-    
-    .combo-box {
-      margin-left: 10px;
-    }
+    align-items: flex-start;
   }
+  span.groups-info-name {
+    flex: 1;
+    width: unset;
+  }
+  span.groups-client {
+    width: unset;
+  }
+}
+
+.group-info-client {
+  margin-left: 5px;
 }

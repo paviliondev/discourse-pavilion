@@ -1,0 +1,8 @@
+{{#if showFullName}}
+  <span class="groups-info-name">{{group.full_name}}</span>
+{{else}}
+  <span class="groups-info-name">{{group.displayName}}</span>
+{{/if}}
+{{#if group.client_group}}
+  <span class="groups-client">{{i18n 'groups.client.label'}}</span>
+{{/if}}
