@@ -69,12 +69,7 @@ after_initialize do
         }
         
         if current_user.staff? || current_user.home_category
-          if current_user.staff? &&
-             SiteSetting.respond_to?(:assign_enabled) &&
-             SiteSetting.assign_enabled
-            topic_list_opts[:exclude_assigned_pms] = true
-            topic_list_opts[:assigned] = current_user.username
-          elsif current_user.home_category
+          if current_user.home_category
             topic_list_opts[:category] = current_user.home_category.id
           end
                   
