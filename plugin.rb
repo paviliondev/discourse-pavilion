@@ -135,19 +135,19 @@ after_initialize do
   
   add_to_serializer(:basic_group, :client_group) { object.client_group }
   
-  assignments = {}
-  SiteSetting.pavilion_plugin_assignments.split('|').each do |i|
-    parts = i.split(':')
-    assignments[parts.last] = parts.first
-  end
-  
-  assignment_category_ids = SiteSetting.pavilion_plugin_assignment_categories.split('|').map(&:to_i)
-  
   on(:topic_created) do |topic, opts, user|
+    assignments = {}
+    SiteSetting.pavilion_plugin_assignments.split('|').each do |i|
+      parts = i.split(':')
+      assignments[parts.first] = parts.last
+    end
+    
     plugin = (topic.tags.pluck(:name) & assignments.keys).first
-    assignment_category = assignment_category_ids.include?(topic.category_id.to_i)
+    
+    assignment_category_ids = SiteSetting.pavilion_plugin_assignment_categories.split('|').map(&:to_i)
+    is_assignment_category = assignment_category_ids.include?(topic.category_id.to_i)
         
-    if plugin && assignment_category
+    if plugin && is_assignment_category
       assigner = TopicAssigner.new(topic, Discourse.system_user)
       assigner.assign(User.find_by_username(assignments[plugin]))
     end
