@@ -156,4 +156,6 @@ after_initialize do
   add_to_serializer(:site_category, :latest_post_created_at) do
     object.latest_post&.created_at
   end
+  
+  SiteSetting.max_category_nesting = 3
 end
