@@ -10,7 +10,7 @@ module GroupModelPavilionExtension
       scope :visible_groups, Proc.new { |user, order, opts|
         Group.from("
           (
-            (#{core_visible_groups(user).to_sql})
+            (#{core_visible_groups(user, order, opts).to_sql})
             
             UNION 
             
