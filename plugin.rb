@@ -96,6 +96,7 @@ after_initialize do
   Group.preloaded_custom_fields << "client_group" if Group.respond_to? :preloaded_custom_fields
   
   %w{
+    ../extensions/guardian.rb
     ../extensions/user_model.rb
     ../extensions/group_model.rb
     ../extensions/admin_groups_controller.rb
@@ -108,6 +109,7 @@ after_initialize do
   ::Group.prepend GroupModelPavilionExtension
   ::Admin::GroupsController.prepend AdminGroupsControllerPavilionExtension
   ::GroupsController.prepend GroupsControllerPavilionExtension
+  ::Guardian.prepend GuardianPavilionExtension
   
   add_to_class(:group, :client_group) do
     if custom_fields['client_group'] != nil
@@ -156,6 +158,4 @@ after_initialize do
   add_to_serializer(:site_category, :latest_post_created_at) do
     object.latest_post&.created_at
   end
-  
-  SiteSetting.max_category_nesting = 3
 end

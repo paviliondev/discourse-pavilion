@@ -1,4 +1,4 @@
-module GroupsMpPavilionExtension
+module GuardianPavilionExtension
   def can_see_groups?(groups)
     if groups.present? && user.present? && groups.any? { |g| g.client_group }
       groups.all? do |group|
