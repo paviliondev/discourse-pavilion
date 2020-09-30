@@ -106,7 +106,7 @@ after_initialize do
   end
   
   ::User.prepend UserModelPavilionExtension
-  ##::Group.prepend GroupModelPavilionExtension
+  ::Group.prepend GroupModelPavilionExtension
   ::Admin::GroupsController.prepend AdminGroupsControllerPavilionExtension
   ::GroupsController.prepend GroupsControllerPavilionExtension
   ::Guardian.prepend GuardianPavilionExtension
