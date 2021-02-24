@@ -77,7 +77,7 @@ after_initialize do
         !Discourse.cache.read(landing_page_cache_key(request.remote_ip)) &&
         destination_url == "#{Discourse.base_url}/"
       
-      Discourse.cache.write landing_page_cache_key(request.remote_ip), true, expires_in: 10.minutes
+      Discourse.cache.write landing_page_cache_key(request.remote_ip), true, expires_in: 5.minutes
       redirect_to LANDING_HOME
       return
     else
