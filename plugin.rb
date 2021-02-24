@@ -1,97 +1,12 @@
 # name: discourse-pavilion
 # about: Pavilion customisations
-# version: 0.1
+# version: 0.2
 # authors: Angus McLeod
 # url: https://github.com/angusmcleod/discourse-pavilion
 
 register_asset "stylesheets/common/pavilion.scss"
-register_asset "stylesheets/mobile/pavilion.scss", :mobile
 
-after_initialize do
-  
-  ### Homepage code to be removed on release of Landing Pages plugin
-  module ::PavilionHome
-    class Engine < ::Rails::Engine
-      engine_name "pavilion_home"
-      isolate_namespace PavilionHome
-    end
-  end
-  
-  require 'homepage_constraint'
-  Discourse::Application.routes.prepend do
-    root to: "pavilion_home/page#index", constraints: HomePageConstraint.new("home")
-    get "/home" => "pavilion_home/page#index"
-  end
-  
-  class ::HomepageUserSerializer < ::BasicUserSerializer
-    attributes :title, :bio
-    
-    def bio
-      object.user_profile.bio_processed
-    end
-  end
-  
-  class ::HomeTopicListItemSerializer < ::TopicListItemSerializer
-    def excerpt
-      doc = Nokogiri::HTML::fragment(object.first_post.cooked)
-      doc.search('.//img').remove
-      PrettyText.excerpt(doc.to_html, 300, keep_emoji_images: true)
-    end
-
-    def include_excerpt?
-      true
-    end
-  end
-  
-  class ::HomeTopicListSerializer < ::TopicListSerializer
-    has_many :topics, serializer: HomeTopicListItemSerializer, embed: :objects
-  end
-  
-  class ::PavilionHome::PageController < ::ApplicationController    
-    def index
-      json = {}
-      guardian = Guardian.new(current_user)
-      team_group = Group.find_by(name: SiteSetting.pavilion_team_group)
-      
-      if team_group
-        json[:members] = ActiveModel::ArraySerializer.new(
-          team_group.users.sample(2),
-          each_serializer: UserSerializer,
-          scope: guardian
-        )
-      end
-      
-      render_json_dump(json)
-    end
-  end
-  
-  add_to_serializer(:current_user, :homepage_id) { object.user_option.homepage_id }
-  add_to_serializer(:current_user, :member) { object.member }
-  add_to_serializer(:user, :member) { object.member }
-  
-  module UserOptionExtension
-    def homepage
-      if homepage_id == 101
-        "home"
-      else
-        super
-      end
-    end
-  end
-  
-  require_dependency 'user_option'
-  class ::UserOption
-    prepend UserOptionExtension
-  end
-  
-  add_to_class(:user, :home_category) do
-    if client_groups.present?
-      Category.client_group_category(client_groups.pluck(:id).first)
-    end
-  end
-  
-  ##### End of homepage code
-  
+after_initialize do  
   Group.register_custom_field_type('client_group', :boolean)
   Group.preloaded_custom_fields << "client_group" if Group.respond_to? :preloaded_custom_fields
   
@@ -152,6 +67,22 @@ after_initialize do
     if plugin && is_assignment_category
       assigner = TopicAssigner.new(topic, Discourse.system_user)
       assigner.assign(User.find_by_username(assignments[plugin]))
+    end
+  end
+  
+  GUEST_REDIRECT_CACHE_KEY ||= "landing_pages_has_redirected"
+  LANDING_HOME ||= "/welcome"
+  
+  add_model_callback(:application_controller, :before_action) do        
+    if !Discourse.cache.read(GUEST_REDIRECT_CACHE_KEY) &&
+        !current_user &&
+        destination_url == "#{Discourse.base_url}/"
+      
+      Discourse.cache.write GUEST_REDIRECT_CACHE_KEY, true, expires_in: 10.minutes
+      redirect_to LANDING_HOME
+      return
+    else
+      #
     end
   end
 end

@@ -8,7 +8,4 @@ en:
       groups:
         client:
           label: "Client Group"
-    
-    home:
-      latest_topics: "Latest topics in"
       

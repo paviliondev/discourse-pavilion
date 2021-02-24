@@ -1,13 +1,4 @@
 plugins:
-  pavilion_home_site_title:
-    client: true
-    default: "Hey, We're Pavilion."
-  pavilion_home_site_description:
-    client: true
-    default: "We help people build online communities."
-  pavilion_home_cta:
-    client: true
-    default: "Get in touch"
   pavilion_team_group:
     type: group
     default: "members"
